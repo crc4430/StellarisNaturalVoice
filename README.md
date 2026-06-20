@@ -217,12 +217,27 @@ $env:AZURE_SPEECH_KEY    = "<new key>"
 
 ## Uninstall
 
+**Option A — full uninstaller script (recommended, no `setup.exe` needed):**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
+```
+
+`uninstall.ps1` removes everything this tool created: the COM engine, all 5 voice
+tokens, the default-voice pointers it set, and the `%LOCALAPPDATA%\AzureSapi`
+folder (DLL + log). It also detects and (when run elevated) removes any
+machine-wide leftovers from older installs. Flags: `-KeepFiles` (leave the DLL/log)
+and `-Yes` (skip the prompt).
+
+**Option B — via `setup.exe`:**
+
 ```powershell
 .\setup.exe uninstall          # remove the voices and registry entries
 .\setup.exe uninstall --purge  # also delete %LOCALAPPDATA%\AzureSapi (DLL + log)
 ```
 
-This restores Windows to its normal voices. Restart Stellaris afterward.
+Either way, restart Stellaris afterward — it returns to the standard Windows
+voices.
 
 ---
 
