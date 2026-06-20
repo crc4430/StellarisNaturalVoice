@@ -1,0 +1,21 @@
+# Rust build output
+target/
+**/target/
+
+# Build staging (binaries are published via GitHub Releases, not committed)
+dist/
+
+# Runtime logs
+*.log
+engine.log
+
+# Local secrets / env (never commit Azure keys)
+*.env
+.env
+secrets.*
+
+# OS / editor cruft
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/
