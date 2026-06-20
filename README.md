@@ -217,27 +217,69 @@ $env:AZURE_SPEECH_KEY    = "<new key>"
 
 ## Uninstall
 
-**Option A — full uninstaller script (recommended, no `setup.exe` needed):**
+You can remove everything in one of three ways.
+
+### Option A — uninstaller script (recommended, no `setup.exe` needed)
+
+From the folder containing `uninstall.ps1`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
 ```
 
-`uninstall.ps1` removes everything this tool created: the COM engine, all 5 voice
-tokens, the default-voice pointers it set, and the `%LOCALAPPDATA%\AzureSapi`
-folder (DLL + log). It also detects and (when run elevated) removes any
-machine-wide leftovers from older installs. Flags: `-KeepFiles` (leave the DLL/log)
-and `-Yes` (skip the prompt).
+It asks for confirmation, then removes the full footprint (listed below). Flags:
 
-**Option B — via `setup.exe`:**
+- `-Yes` — skip the confirmation prompt (for unattended runs)
+- `-KeepFiles` — leave `%LOCALAPPDATA%\AzureSapi` (the DLL + log) on disk
+- Run it in an **elevated** PowerShell to also clean up any machine-wide (HKLM)
+  leftovers from older installs (it warns and lists them if found while not elevated)
+
+### Option B — via `setup.exe`
+
+From the folder containing `setup.exe`:
 
 ```powershell
 .\setup.exe uninstall          # remove the voices and registry entries
 .\setup.exe uninstall --purge  # also delete %LOCALAPPDATA%\AzureSapi (DLL + log)
 ```
 
-Either way, restart Stellaris afterward — it returns to the standard Windows
-voices.
+### Option C — manual removal
+
+If you no longer have either file, delete these yourself:
+
+- **Registry (per-user):**
+  - `HKCU\Software\Classes\CLSID\{2F9B4A17-8C3D-4E62-A1F5-7D0E9B34C8A2}`
+  - `HKCU\SOFTWARE\Microsoft\Speech\Voices\Tokens\Azure*`
+    (`AzureThomas`, `AzureChristopher`, `AzureAria`, `AzureGuy`, `AzureJenny`)
+  - In `HKCU\SOFTWARE\Microsoft\Speech\Voices`, delete `DefaultTokenId` **if** it
+    points at an `Azure...` token
+  - In `HKCU\SOFTWARE\Microsoft\Speech_OneCore\Settings\TextToSpeech`, delete the
+    `Voice` value **if** it points at an `Azure...` token
+- **Files:** delete the folder `%LOCALAPPDATA%\AzureSapi`
+
+### What gets removed
+
+| Item | Location |
+|---|---|
+| COM engine class | `HKCU\Software\Classes\CLSID\{2F9B4A17-…-7D0E9B34C8A2}` |
+| 5 voice tokens | `HKCU\…\Speech\Voices\Tokens\Azure*` |
+| Default-voice pointer (classic) | `HKCU\…\Speech\Voices\DefaultTokenId` (only if it's ours) |
+| Default-voice override (OneCore) | `HKCU\…\Speech_OneCore\Settings\TextToSpeech\Voice` (only if it's ours) |
+| Engine DLL + log | `%LOCALAPPDATA%\AzureSapi\` |
+
+Your **Azure key lives only in the voice tokens**, so removing them also removes
+the stored key. (To stop any billing entirely, also delete the Speech resource in
+the Azure portal.)
+
+### After uninstalling
+
+**Restart Stellaris** — it returns to the standard Windows voices (David/Zira).
+To confirm the voices are gone, this should no longer list any `Azure ...` entry:
+
+```powershell
+Add-Type -AssemblyName System.Speech
+(New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices().VoiceInfo.Name
+```
 
 ---
 
